@@ -1,72 +1,42 @@
--- LocalScript for the TextButton (inside the ScreenGui)
-local button = script.Parent
+-- Variables
 local player = game.Players.LocalPlayer
 local replicatedStorage = game:GetService("ReplicatedStorage")
+local spawnButton = script.Parent:WaitForChild("SpawnButton") -- Button inside the GUI
+local inputBox = script.Parent:WaitForChild("InputBox") -- TextBox inside the GUI
 
--- Declare variables
-local eggHatched = false -- Whether the egg has been hatched or not
-local cupidEggName = "Cupid Egg" -- The name of the egg (just a placeholder)
-local hugeValentineBearSize = Vector3.new(5, 10, 5) -- Size of the Huge Valentine's Bear model
-local bearPositionOffset = Vector3.new(5, 5, 0) -- Position relative to the player's position
+-- Define pet asset IDs
+local petAssets = {
+    ["Huge Green"] = "rbxassetid://8581718276", -- Huge Green Fish
+    ["Huge Dog"] = "rbxassetid://8581676968", -- Golden Huge Dog
+    ["Hippomelon"] = "rbxassetid://8279853271", -- Hippomelon
+}
 
--- Function to simulate hatching the egg and show the Huge Valentine's Bear
-local function hatchEgg()
-    if not eggHatched then
-        eggHatched = true
+-- Function to spawn pet based on user input
+local function spawnPet()
+    local petName = inputBox.Text -- Get the name typed in the TextBox
+    
+    -- Check if the input matches one of the defined pet names
+    local petAssetId = petAssets[petName]
+    
+    if petAssetId then
+        -- Load the pet model
+        local petModel = game:GetService("InsertService"):LoadAsset(petAssetId)
         
-        -- Create the Huge Valentine's Bear model directly in the game
-        local hugeValentineBear = Instance.new("Model")
-        hugeValentineBear.Name = "Huge Valentine's Bear"
+        -- Find the pet and set its position (e.g., spawn it near the player)
+        local pet = petModel:GetChildren()[1] -- Get the first part or model inside the asset
         
-        -- Create a simple part to represent the Huge Valentine's Bear (you can add more parts for details)
-        local bearBody = Instance.new("Part")
-        bearBody.Name = "Body"
-        bearBody.Size = hugeValentineBearSize
-        bearBody.Position = player.Character.HumanoidRootPart.Position + bearPositionOffset  -- Position relative to the player
-        bearBody.Anchored = true
-        bearBody.CanCollide = false
-        bearBody.BrickColor = BrickColor.new("Bright red") -- Customize the color of the body
-        bearBody.Parent = hugeValentineBear
-
-        -- Add a head to the bear for more details
-        local bearHead = Instance.new("Part")
-        bearHead.Name = "Head"
-        bearHead.Size = Vector3.new(4, 4, 4)
-        bearHead.Position = bearBody.Position + Vector3.new(0, 6, 0)  -- Positioned above the body
-        bearHead.Anchored = true
-        bearHead.CanCollide = false
-        bearHead.BrickColor = BrickColor.new("Bright pink") -- Customize color for the head
-        bearHead.Parent = hugeValentineBear
-
-        -- Parent the model to the workspace to make it visible in the game world
-        hugeValentineBear.Parent = game.Workspace
+        -- Set the pet to spawn near the player (position 99 like in Pet Sim X)
+        pet:SetPrimaryPartCFrame(player.Character.HumanoidRootPart.CFrame + Vector3.new(0, 0, 5))
         
-        -- Display message to player
-        print("You hatched the Huge Valentine's Bear!")
+        -- Parent the pet to the workspace so it becomes visible
+        pet.Parent = game.Workspace
+        
+        -- Display message to confirm the pet has spawned
+        print(petName .. " has been spawned!")
     else
-        print("The egg has already been hatched!")
+        print("Invalid pet name. Please type one of the following: 'Huge Green', 'Huge Dog', or 'Hippomelon'.")
     end
 end
 
--- Function to detect touch input (mobile support)
-local function onButtonPressed()
-    if not eggHatched then
-        hatchEgg() -- Simulate hatching the egg and showing the visual
-        button.Text = "Egg Hatched!"  -- Change button text once the egg is hatched
-    else
-        print("The egg is already hatched!")
-    end
-end
-
--- Event handling for mobile and desktop:
-if game:GetService("UserInputService").TouchEnabled then
-    -- For mobile (Touch)
-    button.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Touch then
-            onButtonPressed() -- Trigger egg hatching on touch input
-        end
-    end)
-else
-    -- For desktop (Mouse Click)
-    button.MouseButton1Click:Connect(onButtonPressed) -- Trigger egg hatching on mouse click
-end
+-- Connect the button click event to the spawn function
+spawnButton.MouseButton1Click:Connect(spawnPet)
